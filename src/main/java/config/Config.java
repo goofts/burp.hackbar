@@ -7,15 +7,13 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import burp.IBurpExtenderCallbacks;
-import knife.HeaderEntry;
 
 public class Config {
-    
     private String ConfigName = "";
-    private List<String> stringConfigEntries = new ArrayList<String>();// get from configTableModel
+    private List<String> stringConfigEntries = new ArrayList<String>();
     private int enableStatus = IBurpExtenderCallbacks.TOOL_PROXY;
     private boolean onlyForScope = true;
-    private transient HashMap<String,HeaderEntry> setCookieMap = new HashMap<String,HeaderEntry>();
+    private transient HashMap<String, HeaderEntry> setCookieMap = new HashMap<String,HeaderEntry>();
     private transient HeaderEntry usedCookie = null;
     
     public Config(String ConfigName){
@@ -53,7 +51,6 @@ public class Config {
     public void setOnlyForScope(boolean onlyForScope) {
         this.onlyForScope = onlyForScope;
     }
-
 
     public HashMap<String, HeaderEntry> getSetCookieMap() {
         return setCookieMap;

@@ -7,61 +7,63 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import com.google.gson.Gson;
-import utils.U2CTabFactory;
-import config.Config;
 import config.ConfigEntry;
-import config.ConfigTable;
-import config.ConfigTableModel;
-import ui.GUI;
-import knife.*;
+import config.HeaderEntry;
+import utils.*;
+import config.Config;
+import ui.ConfigTable;
+import model.ConfigTableModel;
+import ui.ExtenderUIPanel;
 
-public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
+public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
     private static final long serialVersionUID = 1L;
-
+    public static IContextMenuInvocation invocation;
     public static IBurpExtenderCallbacks callbacks;
-    public IExtensionHelpers helpers;
+    public static IExtensionHelpers helpers;
     public static PrintWriter stdout;
     public static PrintWriter stderr;
-    public IContextMenuInvocation invocation;
     public int proxyServerIndex=-1;
 
-    public static String ExtensionName = "knife";
-    public static String Version = "1.1.1";
+    public static String extensionName = "knife";
+    public static String version = "1.1.1";
     
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-        BurpExtender.callbacks = callbacks;
         this.helpers = callbacks.getHelpers();
+        this.callbacks = callbacks;
         flushStd();
-        BurpExtender.stdout.println(getBanner());
+        stdout.println(getBanner());
 
         table = new ConfigTable(new ConfigTableModel());
         configPanel.setViewportView(table);
 
-        String content = callbacks.loadExtensionSetting("knife");
+        String content = callbacks.loadExtensionSetting(extensionName);
         if (content!=null) {
             config = new Gson().fromJson(content, Config.class);
             showToUI(config);
         }else {
             showToUI(new Gson().fromJson(initConfig(), Config.class));
         }
+
         table.setupTypeColumn();
 
-        U2CTabFactory u2ctabFactory = new U2CTabFactory(null, false, helpers, callbacks);
+        BurpU2CEditorTabFactory burpU2CEditorTabFactory = new BurpU2CEditorTabFactory(null, false, helpers, callbacks);
+        BurpJsonEditorTabFactory burpJsonEditorTabFactory = new BurpJsonEditorTabFactory(null, false, helpers, callbacks);
 
-        callbacks.setExtensionName(ExtensionName);
-        callbacks.registerContextMenuFactory(new BurpMenu(callbacks));
-        callbacks.registerContextMenuFactory(this);// for menus
-        callbacks.registerMessageEditorTabFactory(u2ctabFactory);// for U2C
-        callbacks.addSuiteTab(BurpExtender.this);
+        callbacks.setExtensionName(extensionName);
+        callbacks.addSuiteTab(this);
+        callbacks.registerMessageEditorTabFactory(burpU2CEditorTabFactory);
+        callbacks.registerMessageEditorTabFactory(burpJsonEditorTabFactory);
+        callbacks.registerContextMenuFactory(new BurpCookieMenu(callbacks));
+        callbacks.registerContextMenuFactory(new BurpResponseMenu(callbacks));
+        callbacks.registerContextMenuFactory(new BurpDownloadResponseMenu(callbacks));
+        callbacks.registerContextMenuFactory(this);
+        callbacks.registerExtensionStateListener(this);
         callbacks.registerHttpListener(this);
         callbacks.registerProxyListener(this);
-        callbacks.registerExtensionStateListener(this);
     }
-
 
     private static void flushStd(){
         try{
@@ -73,56 +75,27 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         }
     }
 
-    public static PrintWriter getStdout() {
-        flushStd();//不同的时候调用这个参数，可能得到不同的值
-        return stdout;
-    }
-
-    public static PrintWriter getStderr() {
-        flushStd();
-        return stderr;
-    }
-
     @Override
     public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
+        this.invocation = invocation;
         ArrayList<JMenuItem> menu_item_list = new ArrayList<JMenuItem>();
 
-        this.invocation = invocation;
-        //常用
-        menu_item_list.add(new OpenWithBrowserMenu(this));
-        menu_item_list.add(new Custom_Payload_Menu(this));
-        menu_item_list.add(new InsertXSSMenu(this));
-
-        //cookie身份凭证相关
-        menu_item_list.add(new UpdateCookieMenu(this));
-        menu_item_list.add(new UpdateCookieWithHistoryMenu(this));
-
-        menu_item_list.add(new SetCookieMenu(this));
-        menu_item_list.add(new SetCookieWithHistoryMenu(this));
-
-        UpdateHeaderMenu updateHeader = new UpdateHeaderMenu(this);//JMenuItem vs. JMenu
+        UpdateHeaderMenu updateHeader = new UpdateHeaderMenu(this, invocation);
         if (updateHeader.getItemCount()>0) {
             menu_item_list.add(updateHeader);
         }
 
-        //扫描攻击相关
-        menu_item_list.add(new AddHostToScopeMenu(this));
-        menu_item_list.add(new RunSQLMapMenu(this));
-        menu_item_list.add(new DoActiveScanMenu(this));
-        menu_item_list.add(new DoPortScanMenu(this));
+        menu_item_list.add(new BurpChunkedEncodingMenu(this, invocation));
+        menu_item_list.add(new BurpCustomPayloadMenu(this, invocation));
+        menu_item_list.add(new BurpXssPayloadMenu(this, invocation));
+        menu_item_list.add(new BurpSqlPayloadMenu(this, invocation));
+        menu_item_list.add(new BurpShellMenu(this, invocation));
+        menu_item_list.add(new BurpXXEPayloadMenu(this, invocation));
+        menu_item_list.add(new SetCookieMenu(this, invocation));
+        menu_item_list.add(new SetCookieWithHistoryMenu(this, invocation));
+        menu_item_list.add(new UpdateCookieMenu(this, invocation));
+        menu_item_list.add(new UpdateCookieWithHistoryMenu(this, invocation));
 
-
-        //不太常用的
-        menu_item_list.add(new DismissHostMenu(this));
-        menu_item_list.add(new DismissURLMenu(this));
-        menu_item_list.add(new DismissCancelMenu(this));
-
-        menu_item_list.add(new ChunkedEncodingMenu(this));
-        menu_item_list.add(new DownloadResponseMenu(this));
-        menu_item_list.add(new ViewChineseMenu(this));
-        //menu_item_list.add(new JMenuItem());
-        //空的JMenuItem不会显示，所以将是否添加Item的逻辑都方法到类当中去了，以便调整菜单顺序。
-        
         Iterator<JMenuItem> it = menu_item_list.iterator();
         while (it.hasNext()) {
             JMenuItem item = it.next();
@@ -131,18 +104,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
             }
         }
 
-        String oneMenu  = this.tableModel.getConfigValueByKey("Put_MenuItems_In_One_Menu");
-        if (oneMenu != null) {
-            ArrayList<JMenuItem> Knife = new ArrayList<JMenuItem>();
-            JMenu knifeMenu = new JMenu("Send to knife");
-            Knife.add(knifeMenu);
-            for (JMenuItem item : menu_item_list) {
-                knifeMenu.add(item);
-            }
-            return Knife;
-        }else {
-            return menu_item_list;
-        }
+        return menu_item_list;
     }
 
 
@@ -150,7 +112,6 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
     public String getTabCaption() {
         return ("knife");
     }
-
 
     @Override
     public Component getUiComponent() {
@@ -169,37 +130,11 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
         return getAllConfig();
     }
 
-    //IProxyListener中的方法，修改的内容会在proxy中显示为edited
     @Override
     public void processProxyMessage(boolean messageIsRequest, IInterceptedProxyMessage message) {
-        //processHttpMessage(IBurpExtenderCallbacks.TOOL_PROXY,true,message.getMessageInfo());
-        //same action will be executed twice! if call processHttpMessage() here.
-        //请求和响应到达proxy时，都各自调用一次,如下部分是测试代码，没毛病啊！
-        /*
-        HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
-        IHttpRequestResponse messageInfo = message.getMessageInfo();
-        if (messageIsRequest) {
-            byte[] newRequest = CookieUtils.updateCookie(message.getMessageInfo(),"aaa=111111111");
-            message.getMessageInfo().setRequest(newRequest);
-            
-            stderr.println("request called "+cookieToSetMap);
-        }else{
-        stderr.println("response called "+cookieToSetMap);
-            Getter getter = new Getter(helpers);
-            List<String> setHeaders = GetSetCookieHeaders("bbb=2222;");
-            List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-            byte[] responseBody = getter.getBody(false,messageInfo);
-            responseHeaders.addAll(setHeaders);
-
-            byte[] response = helpers.buildHttpMessage(responseHeaders,responseBody);
-
-            messageInfo.setResponse(response);
-        }
-        cookieToSetMap.clear();
-        */
-        Getter getter = new Getter(helpers);
+        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(helpers);
         if (messageIsRequest) {//丢弃干扰请求
-            String url = getter.getFullURL(message.getMessageInfo()).toString();
+            String url = httpRequestResponseUtils.getFullURL(message.getMessageInfo()).toString();
             if (isDismissed(url)){
                 //enable = ACTION_DROP; disable = ACTION_DONT_INTERCEPT
                 if (tableModel.getConfigValueByKey("DismissAction") == null) {
@@ -221,7 +156,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
          * 情况一：当当前是CONTEXT_MESSAGE_EDITOR_REQUEST的情况下（比如proxy和repeater中），
          * 更新请求的操作和updateCookie的操作一样，在手动操作时进行更新，而响应包由processProxyMessage来更新。
          * 情况二：除了上面的情况，请求包和响应包的更新都由processProxyMessage来实现，非proxy的情况下也不需要再rehook。
-         * 
+         *
          */
         HashMap<String, HeaderEntry> cookieToSetMap = config.getSetCookieMap();
         //stdout.println("processProxyMessage called when messageIsRequest="+messageIsRequest+" "+cookieToSetMap);
@@ -230,7 +165,7 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
             IHttpRequestResponse messageInfo = message.getMessageInfo();
             //String CurrentUrl = messageInfo.getHttpService().toString();//这个方法获取到的url包含默认端口！
 
-            String CurrentUrl = getter.getShortURL(messageInfo).toString();
+            String CurrentUrl = httpRequestResponseUtils.getShortURL(messageInfo).toString();
             //stderr.println(CurrentUrl+" "+targetUrl);
             HeaderEntry cookieToSet = cookieToSetMap.get(CurrentUrl);
             if (cookieToSet != null){
@@ -244,8 +179,8 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
                         messageInfo.setRequest(newRequest);
                     }
                 }else {
-                    List<String> responseHeaders = getter.getHeaderList(false,messageInfo);
-                    byte[] responseBody = getter.getBody(false,messageInfo);
+                    List<String> responseHeaders = httpRequestResponseUtils.getHeaderList(false,messageInfo);
+                    byte[] responseBody = httpRequestResponseUtils.getBody(false,messageInfo);
                     List<String> setHeaders = GetSetCookieHeaders(cookieValue);
                     responseHeaders.addAll(setHeaders);
 
@@ -266,18 +201,16 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
     }
 
-    //IHttpListener中的方法，修改的内容在Proxy中不可见
     @Override
     public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-        //stdout.println("processHttpMessage called when messageIsRequest="+messageIsRequest);
         try {
             if (messageIsRequest) {
-                Getter getter = new Getter(helpers);
+                HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(helpers);
 
-                URL url = getter.getFullURL(messageInfo);
-                String host = getter.getHost(messageInfo);
-                LinkedHashMap<String, String> headers = getter.getHeaderMap(messageIsRequest,messageInfo);
-                byte[] body = getter.getBody(messageIsRequest,messageInfo);
+                URL url = httpRequestResponseUtils.getFullURL(messageInfo);
+                String host = httpRequestResponseUtils.getHost(messageInfo);
+                LinkedHashMap<String, String> headers = httpRequestResponseUtils.getHeaderMap(messageIsRequest,messageInfo);
+                byte[] body = httpRequestResponseUtils.getBody(messageIsRequest,messageInfo);
 
                 boolean isRequestChanged = false;
 
@@ -339,13 +272,12 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
                                     if (lenStr != null) {
                                         len = Integer.parseInt(lenStr);
                                     }
-                                    body = Methods.encoding(body, len, useComment);
+                                    body = MethodsUtils.encoding(body, len, useComment);
                                 } catch (UnsupportedEncodingException e) {
                                     stderr.print(e.getStackTrace());
                                 }
                             }
                         }
-
 
                         ///proxy function should be here
                         //reference https://support.portswigger.net/customer/portal/questions/17350102-burp-upstream-proxy-settings-and-sethttpservice
@@ -376,10 +308,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
                 }
                 if (isRequestChanged){
                     //set final request
-                    List<String> headerList = getter.headerMapToHeaderList(headers);
+                    List<String> headerList = httpRequestResponseUtils.headerMapToHeaderList(headers);
                     messageInfo.setRequest(helpers.buildHttpMessage(headerList,body));
                 }
-
 
                 if (isRequestChanged) {
                     //debug
@@ -390,12 +321,9 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
                         stdout.println(entry);
                     }
                 }
-            }else {//response
-
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            stderr.print(e.getStackTrace());
+            e.printStackTrace(stderr);
         }
     }
 
@@ -406,10 +334,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
         String[] cookieList = cookies.split("; ");
         List<String> setHeaderList= new ArrayList<String>();
-        //Set-Cookie: SST_S22__WEB_RIGHTS=SST_S22_JT_RIGHTS_113_9; Path=/
         for (String cookie: cookieList){
             setHeaderList.add(String.format("Set-Cookie: %s; Path=/",cookie));
         }
+
         return setHeaderList;
     }
 
@@ -472,10 +400,10 @@ public class BurpExtender extends GUI implements IBurpExtender, IContextMenuFact
 
     public static String getBanner(){
         String bannerInfo =
-                "[+] " + ExtensionName + " is loaded\n"
+                "[+] " + extensionName + " is loaded\n"
                         + "[+]\n"
                         + "[+] ###########################################################\n"
-                        + "[+]    " + ExtensionName + " v" + Version +"\n"
+                        + "[+]    " + extensionName + " v" + version +"\n"
                         + "[+]    anthor:   bit4woo\n"
                         + "[+]    email:    bit4woo@163.com\n"
                         + "[+]    github:   https://github.com/bit4woo/knife\n"

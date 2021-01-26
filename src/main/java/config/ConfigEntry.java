@@ -8,7 +8,7 @@ public class ConfigEntry {
     private String value = "";
     private String type ="";
     private boolean enable = true;
-    private boolean editable = true;//whether can edit name and type
+    private boolean editable = true;
     private String comment = "";
     
     public static final String Action_Add_Or_Replace_Header = "Action_Add_Or_Replace_Header";
@@ -17,13 +17,16 @@ public class ConfigEntry {
     
     public static final String Config_Custom_Payload = "Config_Custom_Payload";
     public static final String Config_Custom_Payload_Base64 = "Config_Custom_Payload_Base64";
+    public static final String Config_Xss_Payload = "Config_Xss_Payload";
+    public static final String Config_Sql_Payload = "Config_Sql_Payload";
+    public static final String Config_Shell_Payload = "Config_Shell_Payload";
+    public static final String Config_XXE_Payload = "Config_XXE_Payload";
+    public static final String Config_LFI_Payload = "Config_LFI_Payload";
     public static final String Config_Basic_Variable = "Config_Basic_Variable";
     public static final String Config_Chunked_Variable = "Config_Chunked_Variable";
     public static final String Config_Proxy_Variable = "Config_Proxy_Variable";
     
-    public ConfigEntry(){
-        //to resolve "default constructor not found" error
-    }
+    public ConfigEntry(){ }
     
     public ConfigEntry(String key,String value,String type,boolean enable){
         this.key = key;
@@ -101,8 +104,7 @@ public class ConfigEntry {
         return new Gson().toJson(this);
     }
     
-    public ConfigEntry FromJson(String json){//注意函数名称，如果是get set开头，会被认为是Getter和Setter函数，会在序列化过程中被调用。
+    public ConfigEntry FromJson(String json){
         return new Gson().fromJson(json, ConfigEntry.class);
     }
-
 }
