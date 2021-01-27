@@ -116,6 +116,6 @@ public class JsonEditorTab implements IMessageEditorTab, IMessageEditorTabFactor
 
     @Override
     public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-        return new JsonEditorTab(null, false, BurpExtender.callbacks.getHelpers(), BurpExtender.callbacks);
+        return new JsonEditorTab(null, false, BurpExtender.mCallbacks.getHelpers(), BurpExtender.mCallbacks);
     }
 }

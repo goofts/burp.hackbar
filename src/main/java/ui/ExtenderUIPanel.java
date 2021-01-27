@@ -158,7 +158,7 @@ public class ExtenderUIPanel extends JFrame {
                 JsonFileUtils jsonFile = new JsonFileUtils(); //excel过滤器
                 fc.addChoosableFileFilter(jsonFile);
                 fc.setFileFilter(jsonFile);
-                fc.setDialogTitle("Chose knife config File");
+                fc.setDialogTitle("Chose hackbar config File");
                 fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
                 if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
                     try {
@@ -185,7 +185,7 @@ public class ExtenderUIPanel extends JFrame {
                 JsonFileUtils jsonFile = new JsonFileUtils(); //过滤器
                 fc.addChoosableFileFilter(jsonFile);
                 fc.setFileFilter(jsonFile);
-                fc.setDialogTitle("Chose knife config File");
+                fc.setDialogTitle("Chose hackbar config File");
                 fc.setDialogType(JFileChooser.CUSTOM_DIALOG);
                 if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
                     try {
@@ -316,7 +316,7 @@ public class ExtenderUIPanel extends JFrame {
     }
     
     public void saveConfigToBurp() {
-        BurpExtender.callbacks.saveExtensionSetting("knifeconfig", getAllConfig());
+        BurpExtender.mCallbacks.saveExtensionSetting("hackbarconfig", getAllConfig());
     }
 
     public int checkEnabledFor(){

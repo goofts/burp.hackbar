@@ -43,7 +43,7 @@ public class CookieDialog extends JDialog {
         strDomain = mReqResp.getHttpService().getHost();
         List<String> headers = mHelpers.analyzeRequest(reqresp.getRequest()).getHeaders();
 
-        strRawCookie = "extender=knife;";
+        strRawCookie = "extender=hackbar;";
         for (String str:headers) {
             int num = mHelpers.indexOf(str.getBytes(), "Cookie:".getBytes(), false, 0, str.length());
             if(num>=0){

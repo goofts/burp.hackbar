@@ -36,7 +36,7 @@ public class UpdateHeaderMenu extends JMenu {
                             public void actionPerformed(ActionEvent event) {
                                 IHttpRequestResponse[] selectedItems = mInvocation.getSelectedMessages();
                                 IHttpRequestResponse messageInfo = selectedItems[0];
-                                HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.callbacks.getHelpers());
+                                HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.mCallbacks.getHelpers());
                                 String shorturl = httpRequestResponseUtils.getShortURL(messageInfo).toString();
                                 HeaderEntry urlAndtoken = CookieUtils.getLatestHeaderFromHistory(shorturl,pheader);
 

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.goofts.burpext</groupId>
-    <artifactId>knife</artifactId>
+    <artifactId>hackbar</artifactId>
     <version>1.1.1</version>
 
     <properties>
@@ -20,11 +20,11 @@
             <version>1.7.22</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <!-- https://mvnrepository.com/artifact/commons-logging/commons-logging -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>30.1-jre</version>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
@@ -46,6 +46,41 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.8.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/fr.bmartel/pcapngdecoder -->
+        <dependency>
+            <groupId>fr.bmartel</groupId>
+            <artifactId>pcapngdecoder</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.14</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.pkts/pkts-core -->
+        <dependency>
+            <groupId>io.pkts</groupId>
+            <artifactId>pkts-core</artifactId>
+            <version>3.0.7</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.pkts/pkts-buffers -->
+        <dependency>
+            <groupId>io.pkts</groupId>
+            <artifactId>pkts-buffers</artifactId>
+            <version>3.0.7</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1-jre</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
@@ -81,6 +116,14 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.75</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pcap</groupId>
+            <artifactId>reconst</artifactId>
+            <version>1.3.8</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/pcap-reconst.jar</systemPath>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/junit/junit -->

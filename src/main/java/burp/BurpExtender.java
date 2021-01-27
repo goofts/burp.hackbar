@@ -19,20 +19,31 @@ import ui.ExtenderUIPanel;
 
 public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, IContextMenuFactory, ITab, IHttpListener,IProxyListener,IExtensionStateListener {
     private static final long serialVersionUID = 1L;
-    public static IContextMenuInvocation invocation;
-    public static IBurpExtenderCallbacks callbacks;
+    private static final byte CONTEXT_MESSAGE_EDITOR_REQUEST = 0;
+    private static final byte CONTEXT_MESSAGE_EDITOR_RESPONSE = 1;
+    private static final byte CONTEXT_MESSAGE_VIEWER_REQUEST = 2;
+    private static final byte CONTEXT_MESSAGE_VIEWER_RESPONSE = 3;
+    private static final byte CONTEXT_TARGET_SITE_MAP_TREE = 4;
+    private static final byte CONTEXT_TARGET_SITE_MAP_TABLE = 5;
+    private static final byte CONTEXT_PROXY_HISTORY = 6;
+    private static final byte CONTEXT_SCANNER_RESULTS = 7;
+    private static final byte CONTEXT_INTRUDER_PAYLOAD_POSITIONS = 8;
+    private static final byte CONTEXT_INTRUDER_ATTACK_RESULTS = 9;
+    private static final byte CONTEXT_SEARCH_RESULTS = 10;
+    public static IContextMenuInvocation mInvocation;
+    public static IBurpExtenderCallbacks mCallbacks;
     public static IExtensionHelpers helpers;
     public static PrintWriter stdout;
     public static PrintWriter stderr;
-    public int proxyServerIndex=-1;
+    public int proxyServerIndex = -1;
 
-    public static String extensionName = "knife";
+    public static String extensionName = "hackbar";
     public static String version = "1.1.1";
     
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         this.helpers = callbacks.getHelpers();
-        this.callbacks = callbacks;
+        this.mCallbacks = callbacks;
         flushStd();
         stdout.println(getBanner());
 
@@ -59,6 +70,20 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
         callbacks.registerContextMenuFactory(new BurpCookieMenu(callbacks));
         callbacks.registerContextMenuFactory(new BurpResponseMenu(callbacks));
         callbacks.registerContextMenuFactory(new BurpDownloadResponseMenu(callbacks));
+        callbacks.registerContextMenuFactory(new IContextMenuFactory() {
+            public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
+                switch (invocation.getInvocationContext()) {
+                    case CONTEXT_PROXY_HISTORY:
+                    case CONTEXT_TARGET_SITE_MAP_TREE:
+                    case CONTEXT_TARGET_SITE_MAP_TABLE:
+                    case CONTEXT_MESSAGE_VIEWER_REQUEST:
+                    case CONTEXT_MESSAGE_VIEWER_RESPONSE:
+                        return Collections.singletonList(new JMenuItem(new BurpOpenPcapFileMenu(mCallbacks)));
+                    default:
+                        return Collections.emptyList();
+                }
+            }
+        });
         callbacks.registerContextMenuFactory(this);
         callbacks.registerExtensionStateListener(this);
         callbacks.registerHttpListener(this);
@@ -67,8 +92,8 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
 
     private static void flushStd(){
         try{
-            stdout = new PrintWriter(callbacks.getStdout(), true);
-            stderr = new PrintWriter(callbacks.getStderr(), true);
+            stdout = new PrintWriter(mCallbacks.getStdout(), true);
+            stderr = new PrintWriter(mCallbacks.getStderr(), true);
         }catch (Exception e){
             stdout = new PrintWriter(System.out, true);
             stderr = new PrintWriter(System.out, true);
@@ -77,7 +102,7 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
 
     @Override
     public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
-        this.invocation = invocation;
+        this.mInvocation = invocation;
         ArrayList<JMenuItem> menu_item_list = new ArrayList<JMenuItem>();
 
         UpdateHeaderMenu updateHeader = new UpdateHeaderMenu(this, invocation);
@@ -110,7 +135,7 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
 
     @Override
     public String getTabCaption() {
-        return ("knife");
+        return (extensionName);
     }
 
     @Override
@@ -120,7 +145,7 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
 
     @Override
     public void extensionUnloaded() {
-        callbacks.saveExtensionSetting("knife", getAllConfig());
+        mCallbacks.saveExtensionSetting(extensionName, getAllConfig());
     }
 
     @Override
@@ -226,7 +251,7 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
                 //add/update/append header
                 if (toolFlag == (toolFlag & checkEnabledFor())) {
                     //if ((config.isOnlyForScope() && callbacks.isInScope(url))|| !config.isOnlyForScope()) {
-                    if (!config.isOnlyForScope()||callbacks.isInScope(url)){
+                    if (!config.isOnlyForScope()|| mCallbacks.isInScope(url)){
 
                         List<ConfigEntry> updateOrAddEntries = tableModel.getConfigEntries();
                         for (ConfigEntry entry : updateOrAddEntries) {
@@ -313,10 +338,7 @@ public class BurpExtender extends ExtenderUIPanel implements IBurpExtender, ICon
                 }
 
                 if (isRequestChanged) {
-                    //debug
                     List<String> finalheaders = helpers.analyzeRequest(messageInfo).getHeaders();
-                    //List<String> finalheaders = editer.getHeaderList();//error here:bodyOffset getted twice are different
-                    stdout.println(System.lineSeparator() + "//////////edited request by knife//////////////" + System.lineSeparator());
                     for (String entry : finalheaders) {
                         stdout.println(entry);
                     }

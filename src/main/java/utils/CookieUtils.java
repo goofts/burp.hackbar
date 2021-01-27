@@ -20,8 +20,8 @@ public class CookieUtils {
 
     public static HeaderEntry getLatestHeaderFromHistory(String shortUrl, String headerName){
         shortUrl = HttpRequestResponseUtils.formateURLString(shortUrl);
-        IHttpRequestResponse[]  historyMessages = Reverse(BurpExtender.callbacks.getProxyHistory());
-        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.callbacks.getHelpers());
+        IHttpRequestResponse[]  historyMessages = Reverse(BurpExtender.mCallbacks.getProxyHistory());
+        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.mCallbacks.getHelpers());
 
         for (IHttpRequestResponse historyMessage:historyMessages) {
             String hisShortUrl = httpRequestResponseUtils.getShortURL(historyMessage).toString();
@@ -112,7 +112,7 @@ public class CookieUtils {
     }
 
     public static byte[] updateCookie(IHttpRequestResponse messageInfo,String cookieValue){
-        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.callbacks.getHelpers());
+        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.mCallbacks.getHelpers());
         LinkedHashMap<String, String> headers = httpRequestResponseUtils.getHeaderMap(true,messageInfo);
         byte[] body = httpRequestResponseUtils.getBody(true,messageInfo);
 
@@ -122,7 +122,7 @@ public class CookieUtils {
         headers.put("Cookie",cookieValue);
         List<String> headerList = httpRequestResponseUtils.headerMapToHeaderList(headers);
 
-        byte[] newRequestBytes = BurpExtender.callbacks.getHelpers().buildHttpMessage(headerList, body);
+        byte[] newRequestBytes = BurpExtender.mCallbacks.getHelpers().buildHttpMessage(headerList, body);
         return newRequestBytes;
     }
 }

@@ -33,7 +33,7 @@ public class CharSet {
     }
     
     public static String getResponseCharset(byte[] response){
-        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.callbacks.getHelpers());
+        HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.mCallbacks.getHelpers());
         String contentType = httpRequestResponseUtils.getHeaderValueOf(false,response,"Content-Type");
         String body = new String(httpRequestResponseUtils.getBody(false,response));
         String tmpcharSet = null;

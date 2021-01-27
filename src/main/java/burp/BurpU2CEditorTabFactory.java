@@ -6,8 +6,8 @@ public class BurpU2CEditorTabFactory implements IMessageEditorTabFactory {
     private static IExtensionHelpers helpers;
     private static IBurpExtenderCallbacks callbacks;
     
-    public static final String majorVersion = BurpExtender.callbacks.getBurpVersion()[1].replaceAll("[a-zA-Z]","");
-    public static final String minorVersion = BurpExtender.callbacks.getBurpVersion()[2].replaceAll("[a-zA-Z]","");
+    public static final String majorVersion = BurpExtender.mCallbacks.getBurpVersion()[1].replaceAll("[a-zA-Z]","");
+    public static final String minorVersion = BurpExtender.mCallbacks.getBurpVersion()[2].replaceAll("[a-zA-Z]","");
     
     public static boolean needJSON() {
         try {

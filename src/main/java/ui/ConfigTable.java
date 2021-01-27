@@ -71,7 +71,7 @@ public class ConfigTable extends JTable {
                     sorter.getSortKeys().get(0).getColumn();
                     ////当Jtable中无数据时，jtable.getRowSorter()是null
                 } catch (Exception e1) {
-                    e1.printStackTrace(new PrintWriter(BurpExtender.callbacks.getStderr(), true));//working?
+                    e1.printStackTrace(new PrintWriter(BurpExtender.mCallbacks.getStderr(), true));//working?
                 }
             }
         });

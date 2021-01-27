@@ -222,7 +222,7 @@ public class CustomUtils {
 
         }else{//没有斜杠的情况。<link href="www.microsoft.com">这只会被当成目标，不会被当成域名
 
-            HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.callbacks.getHelpers());
+            HttpRequestResponseUtils httpRequestResponseUtils = new HttpRequestResponseUtils(BurpExtender.mCallbacks.getHelpers());
             String fullUrl = httpRequestResponseUtils.getFullURL(message).toString().split("\\?")[0];
             int indexOfLastSlash = fullUrl.lastIndexOf("/");//截取的内容不不包含当前index对应的元素
             return fullUrl.substring(0,indexOfLastSlash+1)+url;
@@ -234,7 +234,7 @@ public class CustomUtils {
         String payload = extender.tableModel.getConfigValueByKey(action);
 
         if (extender.tableModel.getConfigTypeByKey(action).equals(ConfigEntry.Config_Custom_Payload)) {
-            String host = extender.invocation.getSelectedMessages()[0].getHttpService().getHost();
+            String host = extender.mInvocation.getSelectedMessages()[0].getHttpService().getHost();
             if (payload.contains("%host")) {
                 payload = payload.replaceAll("%host", host);
             }

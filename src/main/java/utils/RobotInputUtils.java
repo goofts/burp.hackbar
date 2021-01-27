@@ -25,12 +25,6 @@ public class RobotInputUtils extends Robot {
         // TODO Auto-generated constructor stub
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println(new RobotInputUtils().getSelectedString());
-        //        startCmdConsole();
-        //        new RobotInput().inputString("test");
-    }
-
     public static void test() throws Exception {
         // TODO Auto-generated method stub
         RobotInputUtils robot = new RobotInputUtils(); //创建一个robot对象

